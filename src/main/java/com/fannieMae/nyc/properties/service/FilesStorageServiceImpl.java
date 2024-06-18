@@ -40,15 +40,17 @@ public class FilesStorageServiceImpl implements FilesStorageService {
     try {
       //extractTextSimple.readPdfFile(file);
       //Files.copy(file.getInputStream(), this.root.resolve(file.getOriginalFilename()));
+      File file1 = convertToFile(file, file.getOriginalFilename());
+      String filePath = file.getOriginalFilename().substring(0, file.getOriginalFilename().indexOf(".pdf"));
+
       String[] args = new String[10];
         args[0] = "-in";
         args[1] = "C:\\Users\\sandeep.kumar7\\IdeaProjects\\NYCProperties\\_Docs\\2022-DHCR-Bronx.pdf";
         args[2] = "-out";
-        args[3] = "C:\\Users\\sandeep.kumar7\\IdeaProjects\\NYCProperties\\_Docs\\result\\2022-DHCR-Bronx.html";
+        args[3] = "C:\\Users\\sandeep.kumar7\\IdeaProjects\\nyc-rent-controlled-properties\\_Docs\\result\\"+filePath+".html";
         args[4] = "-el";
         args[5] = "0,-1";
-      File file1 = convertToFile(file, file.getOriginalFilename());
-      String csvFilePath = file.getOriginalFilename().substring(0, file.getOriginalFilename().indexOf(".pdf")) + ".csv";
+
       pdfParser.extractTables(args, file1);
 
     } catch (Exception e) {
