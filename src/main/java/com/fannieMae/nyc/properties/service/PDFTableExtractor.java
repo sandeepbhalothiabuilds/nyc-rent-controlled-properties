@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2015, GIAYBAC
- *
+ * <p>
  * Released under the MIT license
  */
 package com.fannieMae.nyc.properties.service;
@@ -22,6 +22,8 @@ import java.util.*;
 
 
 public class PDFTableExtractor {
+    String regex = ".*[a-zA-Z].*";
+
     //contains pages that will be extracted table content.
     //If this variable doesn't contain any page, all pages will be extracted
     private final List<Integer> extractedPages = new ArrayList<>();
@@ -68,18 +70,16 @@ public class PDFTableExtractor {
         try {
             this.document = PDDocument.load(inputStream);
             for (int pageId = 0; pageId < document.getNumberOfPages(); pageId++) {
-                boolean b = !exceptedPages.contains(pageId) && (extractedPages.isEmpty() || extractedPages.contains(pageId));
-                if (b) {
-                    List<TextPosition> texts = extractTextPositions(pageId);//sorted by .getY() ASC
-                    //extract line ranges
-                    List<Range<Integer>> lineRanges = getLineRanges(pageId, texts);
-                    //extract column ranges
-                    List<TextPosition> textsByLineRanges = getTextsByLineRanges(lineRanges, texts);
+                List<TextPosition> texts = extractTextPositions(pageId);//sorted by .getY() ASC
+                //extract line ranges
+                List<Range<Integer>> lineRanges = getLineRanges(pageId, texts);
+                //extract column ranges
+                List<TextPosition> textsByLineRanges = getTextsByLineRanges(lineRanges, texts);
 
-                    pageIdNLineRangesMap.putAll(pageId, lineRanges);
-                    pageIdNTextsMap.putAll(pageId, textsByLineRanges);
-                }
+                pageIdNLineRangesMap.putAll(pageId, lineRanges);
+                pageIdNTextsMap.putAll(pageId, textsByLineRanges);
             }
+
             //Calculate columnRanges
             List<Range<Integer>> columnRanges = getColumnRanges(pageIdNTextsMap.values());
             for (int pageId : pageIdNTextsMap.keySet()) {
@@ -106,7 +106,7 @@ public class PDFTableExtractor {
 
 
     private Table buildTable(int pageIdx, List<TextPosition> tableContent,
-            List<Range<Integer>> rowTrapRanges, List<Range<Integer>> columnTrapRanges) {
+                             List<Range<Integer>> rowTrapRanges, List<Range<Integer>> columnTrapRanges) {
         Table retVal = new Table(pageIdx, columnTrapRanges.size());
         int idx = 0;
         int rowIdx = 0;
@@ -121,6 +121,9 @@ public class PDFTableExtractor {
                 idx++;
             } else {
                 TableRow row = buildRow(rowIdx, rowContent, columnTrapRanges);
+                if (!retVal.getRows().isEmpty()) {
+                    cleanUpRowContent(row);
+                }
                 retVal.getRows().add(row);
                 //next row: clear rowContent
                 rowContent.clear();
@@ -130,10 +133,39 @@ public class PDFTableExtractor {
         //last row
         if (!rowContent.isEmpty() && rowIdx < rowTrapRanges.size()) {
             TableRow row = buildRow(rowIdx, rowContent, columnTrapRanges);
+            cleanUpRowContent(row);
             retVal.getRows().add(row);
         }
         //return
         return retVal;
+    }
+
+    private void cleanUpRowContent(TableRow row) {
+        int lastIndex = row.getCells().size() - 1;
+        if (lastIndex == 13 && row.getCells().get(lastIndex - 1).getContent().matches(regex)) {
+
+            TableCell blockCell = row.getCells().get(lastIndex - 1);
+            TableCell status3Cell = row.getCells().get(lastIndex - 2);
+            char[] ch = blockCell.getContent().toCharArray();
+
+            StringBuilder status3Str = new StringBuilder("");
+            StringBuilder blockStr = new StringBuilder("");
+
+            for (int i = 0; i < blockCell.getContent().length(); i++) {
+                if ((ch[i] >= 65 && ch[i] <= 90) || (ch[i] >= 97 && ch[i] <= 122)) {
+                    status3Str.append(ch[i]);
+                } else {
+                    blockStr.append(ch[i]);
+                }
+            }
+            TableCell newBlockCell = new TableCell(lastIndex - 1, blockStr.toString());
+            TableCell newStatus3Cell = new TableCell(lastIndex - 2, status3Cell.getContent().concat(status3Str.toString()));
+
+            System.out.println("Status3 has been changed from: " + row.getCells().get(lastIndex - 2).getContent() + " to " + newStatus3Cell.getContent() + " and Block has been changed from " + row.getCells().get(lastIndex - 1).getContent() + " to " + newBlockCell.getContent());
+
+            row.getCells().set(lastIndex - 1, newBlockCell);
+            row.getCells().set(lastIndex - 2, newStatus3Cell);
+        }
     }
 
 
@@ -162,23 +194,21 @@ public class PDFTableExtractor {
                     Range<Integer> columnTrapRange = columnTrapRanges.get(columnIdx);
                     Range<Integer> textRange = Range.closed((int) textPosition.getX(),
                             (int) (textPosition.getX() + textPosition.getWidth()));
-                if (columnTrapRange.encloses(textRange)) {
-                    cellContent.add(textPosition);
-                    idx++;
-                } else if(textRange.lowerEndpoint()<=columnTrapRange.upperEndpoint() && textRange.upperEndpoint()>=columnTrapRange.upperEndpoint()){
-                    cellContent.add(textPosition);
-                    idx++;
-                    System.out.println("Some text is overlapping so it will be skipped");
-                }
-                else{
-                    TableCell cell = buildCell(columnIdx, cellContent);
-                    retVal.getCells().add(cell);
-                    //next column: clear cell content
-                    cellContent.clear();
-                    columnIdx++;
-                }
-                }catch(Exception ex){
-                    System.out.println("retVal11: "+retVal+" Error: "+ex);
+                    if (columnTrapRange.encloses(textRange)) {
+                        cellContent.add(textPosition);
+                        idx++;
+                    } else if (textRange.lowerEndpoint() <= columnTrapRange.upperEndpoint() && textRange.upperEndpoint() >= columnTrapRange.upperEndpoint()) {
+                        cellContent.add(textPosition);
+                        idx++;
+                        System.out.println("Some text is overlapping so it will be skipped for row: " + rowContent);
+                    } else {
+                        TableCell cell = buildCell(columnIdx, cellContent);
+                        retVal.getCells().add(cell);
+                        cellContent.clear();
+                        columnIdx++;
+                    }
+                } catch (Exception ex) {
+                    System.out.println("retVal11: " + retVal + " Error: " + ex);
 
                 }
             }
@@ -186,8 +216,8 @@ public class PDFTableExtractor {
                 TableCell cell = buildCell(columnIdx, cellContent);
                 retVal.getCells().add(cell);
             }
-        }catch (Exception e){
-            System.out.println("retVal: "+retVal+" Error: "+e);
+        } catch (Exception e) {
+            System.out.println("retVal: " + retVal + " Error: " + e);
         }
         //return
         return retVal;
@@ -226,16 +256,6 @@ public class PDFTableExtractor {
         return retVal;
     }
 
-    /**
-     *
-     * Remove all texts in excepted lines
-     *
-     * TexPositions are sorted by .getY() ASC
-     *
-     * @param lineRanges
-     * @param textPositions
-     * @return
-     */
     private List<TextPosition> getTextsByLineRanges(List<Range<Integer>> lineRanges, List<TextPosition> textPositions) {
         List<TextPosition> retVal = new ArrayList<>();
         int idx = 0;
@@ -258,39 +278,31 @@ public class PDFTableExtractor {
         return retVal;
     }
 
-    /**
-     * @param texts
-     * @return
-     */
+
     private List<Range<Integer>> getColumnRanges(Collection<TextPosition> texts) {
         TrapRangeBuilder rangesBuilder = new TrapRangeBuilder();
-        int previousStart = 0;
-        int previousEnd = 0;
-        int currentStart = 0;
-        int currentEnd = 0;
         String headerNames = "";
         for (TextPosition text : texts) {
-            Range<Integer> range = Range.closed((int) Math.floor(text.getX()), (int)Math.ceil(text.getX() + text.getWidth()));
+            Range<Integer> range = Range.closed((int) Math.floor(text.getX()), (int) Math.ceil(text.getX() + text.getWidth()));
             //Range<Integer> range = Range.closed((int)text.getX(), (int)(text.getX() + text.getWidth()));
             rangesBuilder.addRange(range);
             headerNames = headerNames.concat(text.toString());
-            if(headerNames.contains("LOT")){
+            if (headerNames.contains("LOT")) {
                 break;
             }
 
         }
-       return updateRanges(rangesBuilder.build());
-      // return rangesBuilder.build();
+        return updateRanges(rangesBuilder.build());
     }
 
     private List<Range<Integer>> updateRanges(List<Range<Integer>> ranges) {
         TrapRangeBuilder rangesBuilder = new TrapRangeBuilder();
-        for(int i= 0; i < ranges.size(); i++) {
-            if(i<ranges.size()-1) {
-                Range<Integer> range = Range.closed(ranges.get(i).lowerEndpoint(), ranges.get(i + 1).lowerEndpoint()-1);
+        for (int i = 0; i < ranges.size(); i++) {
+            if (i < ranges.size() - 1) {
+                Range<Integer> range = Range.closed(ranges.get(i).lowerEndpoint(), ranges.get(i + 1).lowerEndpoint() - 1);
                 rangesBuilder.addRange(range);
-            } else{
-                Range<Integer> range = Range.closed(ranges.get(i).lowerEndpoint(), ranges.get(i).upperEndpoint()+10);
+            } else {
+                Range<Integer> range = Range.closed(ranges.get(i).lowerEndpoint(), ranges.get(i).upperEndpoint() + 10);
                 rangesBuilder.addRange(range);
             }
         }
@@ -348,12 +360,7 @@ public class PDFTableExtractor {
             this.textPositions.addAll(textPositions);
         }
 
-        /**
-         * and order by textPosition.getY() ASC
-         *
-         * @return
-         * @throws IOException
-         */
+
         private List<TextPosition> extract() throws IOException {
             this.stripPage(pageId);
             //sort

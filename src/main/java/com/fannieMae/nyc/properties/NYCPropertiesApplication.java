@@ -7,16 +7,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class NYCPropertiesApplication implements CommandLineRunner {
-  @Resource
-  FilesStorageService storageService;
+public class NYCPropertiesApplication {
+    @Resource
+    FilesStorageService storageService;
 
-  public static void main(String[] args) {
-    SpringApplication.run(NYCPropertiesApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(NYCPropertiesApplication.class, args);
+    }
 
-  @Override
-  public void run(String... arg) throws Exception {
-    storageService.init();
-  }
 }
