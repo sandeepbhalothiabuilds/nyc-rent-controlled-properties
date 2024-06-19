@@ -10,6 +10,7 @@ import com.fannieMae.nyc.properties.entity.TableRow;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -20,6 +21,9 @@ import java.util.*;
 
 @Service
 public class PDFParser {
+
+    @Autowired
+    NycRcuListingsService nycRcuListingsService;
 
     public void extractTables(File file) {
         try {
@@ -54,12 +58,15 @@ public class PDFParser {
         } catch (Exception e) {
             System.out.println(e);
         }
+
+
     }
 
     private void addDataToJson(Table table, List<Map<String, String>> finalJson) {
         Map<String, String> dataMap = new HashMap<>();
         boolean headerRow = true;
         for (TableRow tableRow : table.getRows()) {
+            nycRcuListingsService.persistNycRcuRecord(tableRow);
             if (!headerRow) {
                 for (int i = 1; i < tableRow.getCells().size(); i++) {
                     dataMap.put(table.getRows().get(0).getCells().get(i - 1).getContent(), tableRow.getCells().get(i - 1).getContent());

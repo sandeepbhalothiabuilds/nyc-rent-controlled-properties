@@ -1,5 +1,7 @@
-package com.fannieMae.nyc.properties.service;
+package com.fannieMae.nyc.properties.service.impl;
 
+import com.fannieMae.nyc.properties.service.FilesStorageService;
+import com.fannieMae.nyc.properties.service.PDFParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
