@@ -24,7 +24,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
   @Override
   public void save(MultipartFile file) {
 
-  if(file.getName().contains(".pdf")){
+  if(file.getOriginalFilename().contains(".pdf")){
     try {
       File file1 = convertToFile(file, file.getOriginalFilename());
       pdfParser.extractTables(file1);
@@ -36,7 +36,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 
       throw new RuntimeException(e.getMessage());
     }
-  } else if(file.getName().contains(".csv")){
+  } else if(file.getOriginalFilename().contains(".csv")) {
 
     try {
       File file1 = convertToFile(file, file.getOriginalFilename());
@@ -49,8 +49,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
       throw new RuntimeException(e.getMessage());
     }
   };
-
-
+  
   }
 
   private File convertToFile(MultipartFile file, String originalFilename) throws IOException {
