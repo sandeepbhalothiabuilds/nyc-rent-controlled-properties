@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,38 +28,44 @@ public class CSVParser {
 
             BufferedReader br = new BufferedReader(new FileReader(file));  
             FileWriter myWriter = new FileWriter("properties.json");
+            ArrayList<NycStblzdPropertyData> propertiesList = new ArrayList<>();
             while ((line = br.readLine()) != null) {  // returns a Boolean value
                 NycStblzdPropertyData pro = new NycStblzdPropertyData();
-                String[] property = line.split(",", 60);    // use comma as separator
+                String[] property = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);// use comma as separator
 
-                //apach poi csv parsing (cell matching)
+                pro.setUcbbl(Integer.parseInt(property[1]));
+                pro.setUnitTotal(Integer.parseInt(property[56]));
+                pro.setYearBuilt(Integer.parseInt(property[57]));
+                pro.setUnitRes(Integer.parseInt(property[55]));
+                pro.setLon(Integer.parseInt(property[59]));
+                pro.setLat(Integer.parseInt(property[60]));
+                pro.setNumBldgs(Integer.parseInt(property[50]));
+                pro.setNumFloors(Integer.parseInt(property[54]));
 
-                // pro.setUcbbl(property[1]);
-                // pro.setUnitTotal(property[56]);
-                // pro.setYearBuilt(property[57]);
-                // pro.setUnitRes(property[55]);
-                // pro.setLon(property[58]);
-                // pro.setLat(property[59]);
-                // pro.setNumBldgs(property[53]);
-                // pro.setNumFloors(property[54]);
-                
+                propertiesList.add(pro);
     
-                    ObjectMapper mapper = new ObjectMapper();
-    
-                    String jsonString = mapper.writeValueAsString(property);
+                ObjectMapper mapper = new ObjectMapper();
+                String jsonString = mapper.writeValueAsString(property);
 
-
-                    //NycStblzdPropertyDataRepository.save(property);
-                    myWriter.write(jsonString+"\n");
-                    System.out.print(property[57] + "\n");
+                myWriter.write(jsonString+"\n");
+                System.out.print(pro + "\n");
 
             }
+
+            // saveProperties(propertiesList);
             myWriter.close();
             
             }   catch (IOException e)   
         {  
             e.printStackTrace(); 
         }
+    }
+
+    public void saveProperties(ArrayList<NycStblzdPropertyData> properties){
+        for (NycStblzdPropertyData pro : properties){
+            nycStblzdPropertyDataRepository.save(pro);
+        }
+
     }
     
 }
