@@ -52,7 +52,7 @@ public class CSVParser {
 
             }
 
-            // saveProperties(propertiesList);
+            saveProperties(propertiesList);
             myWriter.close();
             
             }   catch (IOException e)   
