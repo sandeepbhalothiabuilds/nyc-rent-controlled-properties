@@ -22,7 +22,7 @@ public class NycStblzdPropertyData {
 
     @Id
     @Column(name = "ucbbl_number")
-    private Long ucbbl;
+    private String ucbbl;
 
     @Column(name = "units_total")
     private Long unitTotal;
@@ -34,10 +34,10 @@ public class NycStblzdPropertyData {
     private Long unitRes;
 
     @Column(name = "longitude")
-    private Integer lon;
+    private Float lon;
 
     @Column(name = "latitude")
-    private Integer lat;
+    private Float lat;
 
     @Column(name = "number_of_buildings")
     private Long numBldgs;
