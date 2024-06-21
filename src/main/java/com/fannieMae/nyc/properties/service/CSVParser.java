@@ -49,10 +49,6 @@ public class CSVParser {
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = mapper.writeValueAsString(property);
                     pro.setContent(jsonString);
-    
-                    myWriter.write(jsonString+"\n");
-                    System.out.print(pro + "\n");
-
                 }
 
             }
