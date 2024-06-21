@@ -140,7 +140,7 @@
             </plugin>
 
         </plugins>
-
+        <finalName> NYCProperties-app </finalName>         
     </build>
 
 </project>
