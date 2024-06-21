@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
-@CrossOrigin("http://localhost:8081")
+@CrossOrigin
 public class FilesController {
 
     @Autowired
