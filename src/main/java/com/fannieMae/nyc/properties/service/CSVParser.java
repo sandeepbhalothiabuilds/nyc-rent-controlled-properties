@@ -33,26 +33,29 @@ public class CSVParser {
                 NycStblzdPropertyData pro = new NycStblzdPropertyData();
                 String[] property = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);// use comma as separator
 
-                pro.setUcbbl(Integer.parseInt(property[1]));
-                pro.setUnitTotal(Integer.parseInt(property[56]));
-                pro.setYearBuilt(Integer.parseInt(property[57]));
-                pro.setUnitRes(Integer.parseInt(property[55]));
-                pro.setLon(Integer.parseInt(property[59]));
-                pro.setLat(Integer.parseInt(property[60]));
-                pro.setNumBldgs(Integer.parseInt(property[50]));
-                pro.setNumFloors(Integer.parseInt(property[54]));
-
-                propertiesList.add(pro);
+                if(!"borough".equals(property[0])){
+                    pro.setUcbbl(Long.valueOf(property[1]));
+                    pro.setUnitTotal(Long.valueOf(property[56]));
+                    pro.setYearBuilt(Long.valueOf(property[57]));
+                    pro.setUnitRes(Long.valueOf(property[55]));
+                    pro.setLon(Integer.valueOf(property[59]));
+                    pro.setLat(Integer.valueOf(property[60]));
+                    pro.setNumBldgs(Long.valueOf(property[50]));
+                    pro.setNumFloors(Long.valueOf(property[54]));
     
-                ObjectMapper mapper = new ObjectMapper();
-                String jsonString = mapper.writeValueAsString(property);
+                    propertiesList.add(pro);
+        
+                    ObjectMapper mapper = new ObjectMapper();
+                    String jsonString = mapper.writeValueAsString(property);
+    
+                    myWriter.write(jsonString+"\n");
+                    System.out.print(pro + "\n");
 
-                myWriter.write(jsonString+"\n");
-                System.out.print(pro + "\n");
+                }
 
             }
 
-            saveProperties(propertiesList);
+            // saveProperties(propertiesList);
             myWriter.close();
             
             }   catch (IOException e)   

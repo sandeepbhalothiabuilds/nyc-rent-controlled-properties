@@ -1,15 +1,17 @@
 package com.fannieMae.nyc.properties.entity;
 
-import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 @Entity
 @Data
@@ -20,16 +22,16 @@ public class NycStblzdPropertyData {
 
     @Id
     @Column(name = "ucbbl_number")
-    private Integer ucbbl;
+    private Long ucbbl;
 
     @Column(name = "units_total")
-    private Integer unitTotal;
+    private Long unitTotal;
 
     @Column(name = "year_built")
-    private Integer yearBuilt;
+    private Long yearBuilt;
 
     @Column(name = "units_res")
-    private Integer unitRes;
+    private Long unitRes;
 
     @Column(name = "longitude")
     private Integer lon;
@@ -38,10 +40,10 @@ public class NycStblzdPropertyData {
     private Integer lat;
 
     @Column(name = "number_of_buildings")
-    private Integer numBldgs;
+    private Long numBldgs;
 
     @Column(name = "number_of_floors")
-    private Integer numFloors;
+    private Long numFloors;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Basic(fetch = FetchType.LAZY)
