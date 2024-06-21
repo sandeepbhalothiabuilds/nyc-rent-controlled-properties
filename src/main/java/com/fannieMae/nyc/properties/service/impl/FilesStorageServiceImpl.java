@@ -52,6 +52,15 @@ public class FilesStorageServiceImpl implements FilesStorageService {
   
   }
 
+  /**
+   *
+   */
+  @Override
+  public void getProperties() {
+
+
+  }
+
   private File convertToFile(MultipartFile file, String originalFilename) throws IOException {
     File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + originalFilename);
     file.transferTo(convFile.toPath());
