@@ -1,13 +1,13 @@
 package com.fannieMae.nyc.properties.service.impl;
 
-import com.fannieMae.nyc.properties.entity.NyRentStabilizedProperty;
-import com.fannieMae.nyc.properties.entity.Table;
-import com.fannieMae.nyc.properties.entity.TableRow;
+import com.fannieMae.nyc.properties.entity.*;
+import com.fannieMae.nyc.properties.repository.NycRcuListingsAddressRepository;
 import com.fannieMae.nyc.properties.repository.NycRcuListingsRepository;
 import com.fannieMae.nyc.properties.service.NycRcuListingsService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,7 +23,12 @@ public class NycRcuListingsServiceImpl implements NycRcuListingsService {
     @Autowired
     private NycRcuListingsRepository nycRcuListingsRepository;
 
+    @Autowired
+    private NycRcuListingsAddressRepository nycRcuListingsAddressRepository;
+
     ObjectMapper mapper = new ObjectMapper();
+    @Autowired
+    private StringHttpMessageConverter stringHttpMessageConverter;
 
     @Override
     public void persistNycRcuRecord(List<Table> tables, Map<String, String> boroughAndIdMap) {
@@ -43,32 +48,101 @@ public class NycRcuListingsServiceImpl implements NycRcuListingsService {
 
     private void insertRcuRecords(Table table, String boroughName, String boroughId) throws JsonProcessingException {
         List<NyRentStabilizedProperty> nyRentStabilizedPropertyList = new ArrayList<>();
-        NyRentStabilizedProperty nyRentStabilizedProperty;
+        List<NyRentStabilizedPropertyAddress> nyRentStabilizedPropertyAddressesList = new ArrayList<>();
         boolean headerRow = true;
         for (TableRow tableRow : table.getRows()) {
-            if (!headerRow) {
-                nyRentStabilizedProperty = new NyRentStabilizedProperty();
-                String blockNumber = buildBlockNumber(tableRow);
-                String lotNumber = buildLotNumber(tableRow);
-                nyRentStabilizedProperty.setUcbblNumber(buildUcbblNumber(tableRow, boroughId, blockNumber, lotNumber));
-                nyRentStabilizedProperty.setJsonRawData(convertRowDataToJson(table.getRows().get(0), tableRow));
-                nyRentStabilizedProperty.setBorough(boroughName);
-                nyRentStabilizedProperty.setLot(lotNumber);
-                nyRentStabilizedProperty.setBlock(blockNumber);
-                nyRentStabilizedProperty.setStatus1(tableRow.getCells().size() >= 10 ? tableRow.getCells().get(9).getContent() : null);
-                nyRentStabilizedProperty.setStatus2(tableRow.getCells().size() >= 11 ? tableRow.getCells().get(10).getContent() : null);
-                nyRentStabilizedProperty.setStatus3(tableRow.getCells().size() >= 12 ? tableRow.getCells().get(11).getContent() : null);
-                nyRentStabilizedProperty.setCreatedBy("postgres");
-                nyRentStabilizedProperty.setCreatedAt(LocalDateTime.now());
-                nyRentStabilizedProperty.setUpdatedBy("postgres");
-                nyRentStabilizedProperty.setUpdatedAt(LocalDateTime.now());
-                nyRentStabilizedPropertyList.add(nyRentStabilizedProperty);
+            try {
+                if (!headerRow) {
+                    buildRentStabilizedPropertyList(nyRentStabilizedPropertyList, tableRow, table.getRows().get(0), boroughName, boroughId);
+
+                    //Address Records
+                    buildRentStabilizedPropertyAddressList(nyRentStabilizedPropertyAddressesList, tableRow, table.getRows().get(0), boroughName, boroughId);
+
+                }
+            } catch (Exception e) {
+                System.out.println("Error Occurred when processing data for row, so skipping it: " + tableRow);
             }
             headerRow = false;
 
+
         }
         nycRcuListingsRepository.saveAll(nyRentStabilizedPropertyList);
+        nycRcuListingsAddressRepository.saveAll(nyRentStabilizedPropertyAddressesList);
         System.out.println("Page Records Saved for Page# " + table.getPageIdx());
+    }
+
+    private void buildRentStabilizedPropertyAddressList(List<NyRentStabilizedPropertyAddress> nyRentStabilizedPropertyAddressesList, TableRow tableRow, TableRow headerRow, String boroughName, String boroughId) {
+        if (tableRow.getCells().get(1).getContent().contains("TO")) {
+            List<String> listOfBuildings = buildListOfBuildings(tableRow.getCells().get(1).getContent());
+            listOfBuildings.forEach(buildingNumber -> {
+                nyRentStabilizedPropertyAddressesList.add(buildAddressObject(buildingNumber, tableRow, tableRow.getCells().get(2), tableRow.getCells().get(3), boroughName, boroughId));
+            });
+        } else {
+            nyRentStabilizedPropertyAddressesList.add(buildAddressObject(tableRow.getCells().get(1).getContent(), tableRow, tableRow.getCells().get(2), tableRow.getCells().get(3), boroughName, boroughId));
+        }
+        if (!tableRow.getCells().get(4).getContent().isEmpty()) {
+            if (tableRow.getCells().get(4).getContent().contains("TO")) {
+                List<String> listOfBuildings = buildListOfBuildings(tableRow.getCells().get(4).getContent());
+                listOfBuildings.forEach(buildingNumber -> {
+                    nyRentStabilizedPropertyAddressesList.add(buildAddressObject(buildingNumber, tableRow, tableRow.getCells().get(5), tableRow.getCells().get(6), boroughName, boroughId));
+                });
+            } else {
+                nyRentStabilizedPropertyAddressesList.add(buildAddressObject(tableRow.getCells().get(4).getContent(), tableRow, tableRow.getCells().get(5), tableRow.getCells().get(6), boroughName, boroughId));
+            }
+        }
+    }
+
+    private NyRentStabilizedPropertyAddress buildAddressObject(String buildingNumber, TableRow tableRow, TableCell street, TableCell stateSuffix, String boroughName, String boroughId) {
+        NyRentStabilizedPropertyAddress nyRentStabilizedPropertyAddress = new NyRentStabilizedPropertyAddress();
+        String blockNumber = buildBlockNumber(tableRow);
+        String lotNumber = buildLotNumber(tableRow);
+        nyRentStabilizedPropertyAddress.setUcbblNumber(buildUcbblNumber(tableRow, boroughId, blockNumber, lotNumber));
+        nyRentStabilizedPropertyAddress.setBuildingNumber(buildingNumber);
+        nyRentStabilizedPropertyAddress.setStreet(street.getContent());
+        nyRentStabilizedPropertyAddress.setStateSuffix(stateSuffix.getContent());
+        nyRentStabilizedPropertyAddress.setCity(tableRow.getCells().get(7).getContent());
+        nyRentStabilizedPropertyAddress.setCounty(tableRow.getCells().get(8).getContent());
+        nyRentStabilizedPropertyAddress.setBorough(boroughName);
+        nyRentStabilizedPropertyAddress.setZip(tableRow.getCells().get(0).getContent());
+        nyRentStabilizedPropertyAddress.setLot(lotNumber);
+        nyRentStabilizedPropertyAddress.setBlock(blockNumber);
+        nyRentStabilizedPropertyAddress.setCreatedBy("postgres");
+        nyRentStabilizedPropertyAddress.setCreatedAt(LocalDateTime.now());
+        nyRentStabilizedPropertyAddress.setUpdatedBy("postgres");
+        nyRentStabilizedPropertyAddress.setUpdatedAt(LocalDateTime.now());
+
+        return nyRentStabilizedPropertyAddress;
+    }
+
+    private List<String> buildListOfBuildings(String buildingRange) {
+        List<String> buildingList = new ArrayList<>();
+        String[] buildings = buildingRange.split("TO");
+        int startRange = Integer.parseInt(buildings[0].replaceAll("[^\\d]", ""));
+        int endRange = Integer.parseInt(buildings[1].replaceAll("[^\\d]", ""));
+        for (int buildingNumber = startRange; buildingNumber <= endRange; ) {
+            buildingList.add(String.valueOf(buildingNumber));
+            buildingNumber = buildingNumber + 2;
+        }
+        return buildingList;
+    }
+
+    private void buildRentStabilizedPropertyList(List<NyRentStabilizedProperty> nyRentStabilizedPropertyList, TableRow tableRow, TableRow tableHeader, String boroughName, String boroughId) throws JsonProcessingException {
+        NyRentStabilizedProperty nyRentStabilizedProperty = new NyRentStabilizedProperty();
+        String blockNumber = buildBlockNumber(tableRow);
+        String lotNumber = buildLotNumber(tableRow);
+        nyRentStabilizedProperty.setUcbblNumber(buildUcbblNumber(tableRow, boroughId, blockNumber, lotNumber));
+        nyRentStabilizedProperty.setJsonRawData(convertRowDataToJson(tableHeader, tableRow));
+        nyRentStabilizedProperty.setBorough(boroughName);
+        nyRentStabilizedProperty.setLot(lotNumber);
+        nyRentStabilizedProperty.setBlock(blockNumber);
+        nyRentStabilizedProperty.setStatus1(tableRow.getCells().size() >= 10 ? tableRow.getCells().get(9).getContent() : null);
+        nyRentStabilizedProperty.setStatus2(tableRow.getCells().size() >= 11 ? tableRow.getCells().get(10).getContent() : null);
+        nyRentStabilizedProperty.setStatus3(tableRow.getCells().size() >= 12 ? tableRow.getCells().get(11).getContent() : null);
+        nyRentStabilizedProperty.setCreatedBy("postgres");
+        nyRentStabilizedProperty.setCreatedAt(LocalDateTime.now());
+        nyRentStabilizedProperty.setUpdatedBy("postgres");
+        nyRentStabilizedProperty.setUpdatedAt(LocalDateTime.now());
+        nyRentStabilizedPropertyList.add(nyRentStabilizedProperty);
     }
 
     private String buildLotNumber(TableRow tableRow) {
