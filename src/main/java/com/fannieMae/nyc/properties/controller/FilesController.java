@@ -33,9 +33,5 @@ public class FilesController {
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
         }
     }
-    @GetMapping("/") public String health()
-    {
-        return "***** Health Check ****";
-    }
 
 }
