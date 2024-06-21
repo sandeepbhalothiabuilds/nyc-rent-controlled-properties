@@ -23,7 +23,52 @@ public class NycStblzdPropertyData {
     private Long rentStabilizedPropertyUnitsId;
 
     @Column(name = "ucbbl_number")
-    private String ucbbl;
+    private String ucbblNumber;
+
+    @Column(name = "data_consolidation_year")
+    private String dataConsolidationYear;
+
+    @Column(name = "uc")
+    private String uc;
+
+    @Column(name = "est")
+    private String est;
+
+    @Column(name = "dhcr")
+    private String dhcr;
+
+    @Column(name = "abat")
+    private String abat;
+
+    @Column(name = "cd")
+    private String cd;
+
+    @Column(name = "ct")
+    private String ct;
+
+    @Column(name = "cb")
+    private String cb;
+
+    @Column(name = "council")
+    private String council;
+
+    @Column(name = "zip")
+    private String zip;
+
+    @Column(name = "unit_address")
+    private String unitAddress;
+
+    @Column(name = "ownername")
+    private String ownerName;
+
+    @Column(name = "number_of_buildings")
+    private String numberOfBuildings;
+
+    @Column(name = "numberOfFloors")
+    private String numOfFloors;
+
+    @Column(name = "units_res")
+    private String unitRes;
 
     @Column(name = "units_total")
     private String unitTotal;
@@ -31,20 +76,16 @@ public class NycStblzdPropertyData {
     @Column(name = "year_built")
     private Long yearBuilt;
 
-    @Column(name = "units_res")
-    private String unitRes;
+    @Column(name = "condo_number")
+    private String condoNumber;
+
 
     @Column(name = "longitude")
-    private String lon;
+    private String longitude;
 
     @Column(name = "latitude")
-    private String lat;
+    private String latitude;
 
-    @Column(name = "number_of_buildings")
-    private String numBldgs;
-
-    @Column(name = "number_of_floors")
-    private String numFloors;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Basic(fetch = FetchType.LAZY)

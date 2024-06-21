@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 
+import com.fannieMae.nyc.properties.model.NycRentControlledPropertiesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,13 +53,12 @@ public class FilesStorageServiceImpl implements FilesStorageService {
   
   }
 
-  /**
-   *
-   */
+
   @Override
-  public void getProperties() {
+  public NycRentControlledPropertiesResponse getProperties() {
 
 
+      return null;
   }
 
   private File convertToFile(MultipartFile file, String originalFilename) throws IOException {

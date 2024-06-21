@@ -24,36 +24,36 @@ public class CSVParser {
     NycStblzdPropertyDataRepository nycStblzdPropertyDataRepository;
 
     String line = "";
-    public void extractExcelData(File file){
-        try {  
 
-            BufferedReader br = new BufferedReader(new FileReader(file));  
+    public void extractExcelData(File file) {
+        try {
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
             ArrayList<NycStblzdPropertyData> propertiesList = new ArrayList<>();
             while ((line = br.readLine()) != null) {  // returns a Boolean value
                 NycStblzdPropertyData pro = new NycStblzdPropertyData();
                 String[] property = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);// use comma as separator
 
-                if((!"borough".equals(property[0])) && (!property[50].isEmpty())){
-                    pro.setUcbbl(property[1]);
+                if ((!"borough".equals(property[0])) && (!property[50].isEmpty())) {
+                    pro.setUcbblNumber(property[1]);
                     pro.setUnitTotal(property[56]);
                     pro.setYearBuilt(Long.valueOf(property[57]));
                     pro.setUnitRes(property[55]);
-                    pro.setLon(property[59]);
-                    pro.setLat(property[60]);
-                    pro.setNumBldgs(property[53]);
-                    pro.setNumFloors(property[54]);
+                    pro.setLongitude(property[59]);
+                    pro.setLatitude(property[60]);
+                    pro.setNumberOfBuildings(property[53]);
+                    pro.setNumOfFloors(property[54]);
 
                     propertiesList.add(pro);
-        
+
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = mapper.writeValueAsString(property);
                     pro.setContent(jsonString);
                 }
             }
             CompletableFuture.runAsync(() -> saveProperties(propertiesList));
-            }   catch (IOException e)   
-        {  
-            e.printStackTrace(); 
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -62,8 +62,8 @@ public class CSVParser {
             nycStblzdPropertyDataRepository.deleteAllRecords();
             List<List<NycStblzdPropertyData>> listOfPropertiesList = Lists.partition(propertiesList, 1000);
             listOfPropertiesList.parallelStream().forEach(list -> nycStblzdPropertyDataRepository.saveAll(list));
-        }catch (Exception e){
-            System.out.println("Error while saving the github data: "+e);
+        } catch (Exception e) {
+            System.out.println("Error while saving the github data: " + e);
         }
     }
 }

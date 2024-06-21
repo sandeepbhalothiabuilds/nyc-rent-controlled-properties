@@ -1,6 +1,7 @@
 package com.fannieMae.nyc.properties.controller;
 
 import com.fannieMae.nyc.properties.message.ResponseMessage;
+import com.fannieMae.nyc.properties.model.NycRentControlledPropertiesResponse;
 import com.fannieMae.nyc.properties.service.FilesStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,9 +36,23 @@ public class FilesController {
         }
     }
 
-      @GetMapping("/") public String health()
-    {
-        return "***** Health Check ****";
+    @GetMapping("/health")
+    ResponseEntity<ResponseMessage> health() {
+        String message = "***** Health Check **** ";
+            return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
     }
 
+    @GetMapping("/getProperties")
+    public ResponseEntity<NycRentControlledPropertiesResponse> getProperties() {
+        String message = "";
+        try {
+            NycRentControlledPropertiesResponse response = storageService.getProperties();
+
+            message = "Data Retrieved successfully ";
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            message = "Get Properties API Failed with reason: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new NycRentControlledPropertiesResponse());
+        }
+    }
 }
