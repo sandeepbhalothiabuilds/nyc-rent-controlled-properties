@@ -2,7 +2,6 @@ package com.fannieMae.nyc.properties;
 
 import com.fannieMae.nyc.properties.service.FilesStorageService;
 import jakarta.annotation.Resource;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

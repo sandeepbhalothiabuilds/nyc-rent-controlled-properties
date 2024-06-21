@@ -1,9 +1,17 @@
 package com.fannieMae.nyc.properties.repository;
 
-import com.fannieMae.nyc.properties.entity.NycRcuListings;
+import com.fannieMae.nyc.properties.entity.NyRentStabilizedProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public interface NycRcuListingsRepository extends JpaRepository<NycRcuListings, Long> {
+public interface NycRcuListingsRepository extends JpaRepository<NyRentStabilizedProperty, Long> {
+
+    @Modifying
+    @Transactional
+    @Query(value="DELETE FROM NyRentStabilizedProperty WHERE borough = ?1")
+    void deleteRecordsByBorough(String boroughName);
 }

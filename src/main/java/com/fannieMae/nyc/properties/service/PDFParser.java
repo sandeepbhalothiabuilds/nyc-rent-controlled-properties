@@ -6,9 +6,6 @@
 package com.fannieMae.nyc.properties.service;
 
 import com.fannieMae.nyc.properties.entity.Table;
-import com.fannieMae.nyc.properties.entity.TableRow;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +14,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class PDFParser {
@@ -30,6 +30,8 @@ public class PDFParser {
             String filePath = file.getName().substring(0, file.getName().indexOf(".pdf"));
             String out = System.getProperty("user.dir")+"\\_Docs\\result\\"+filePath+".html";
 
+            Map<String, String> boroughAndIdMap = getBoroughNameAndCode(filePath);
+
             PDFTableExtractor extractor = (new PDFTableExtractor())
                     .setSource(file);
 
@@ -38,17 +40,16 @@ public class PDFParser {
             extractor.exceptLine(Ints.toArray(exceptLineIdxes));
 
             List<Table> tables = extractor.extract();
-
+            nycRcuListingsService.persistNycRcuRecord(tables, boroughAndIdMap);
             Writer writer = new OutputStreamWriter(new FileOutputStream(out), "UTF-8");
-            List<Map<String, String>> finalJson = new ArrayList<>();
             try {
                 for (Table table : tables) {
                     writer.write("Page: " + (table.getPageIdx() + 1) + "\n");
                     writer.write(table.toHtml());
-                    addDataToJson(table, finalJson);
+
 
                 }
-                System.out.println(finalJson);
+
             } finally {
                 try {
                     writer.close();
@@ -62,19 +63,21 @@ public class PDFParser {
 
     }
 
-    private void addDataToJson(Table table, List<Map<String, String>> finalJson) {
-        Map<String, String> dataMap = new HashMap<>();
-        boolean headerRow = true;
-        for (TableRow tableRow : table.getRows()) {
-            nycRcuListingsService.persistNycRcuRecord(tableRow);
-            if (!headerRow) {
-                for (int i = 1; i < tableRow.getCells().size(); i++) {
-                    dataMap.put(table.getRows().get(0).getCells().get(i - 1).getContent(), tableRow.getCells().get(i - 1).getContent());
-                }
-                finalJson.add(dataMap);
-                dataMap = new HashMap<>();
-            }
-            headerRow = false;
+    private Map<String, String> getBoroughNameAndCode(String filePath) {
+        Map<String, String> boroughAndIdMap = new HashMap<>();
+        if(filePath.toLowerCase().contains("manhattan")){
+            boroughAndIdMap.put("MN", "10");
+        } else if (filePath.toLowerCase().contains("brooklyn")) {
+            boroughAndIdMap.put("BK", "30");
+        } else if (filePath.toLowerCase().contains("bronx")) {
+            boroughAndIdMap.put("BX", "20");
+        }  else if (filePath.toLowerCase().contains("queens")) {
+            boroughAndIdMap.put("QN", "40");
+        } else if (filePath.toLowerCase().contains("staten-island")) {
+            boroughAndIdMap.put("SI", "50");
         }
+        return boroughAndIdMap;
     }
+
+
 }
