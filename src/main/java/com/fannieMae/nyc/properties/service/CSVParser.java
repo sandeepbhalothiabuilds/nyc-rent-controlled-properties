@@ -6,7 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,53 +23,47 @@ public class CSVParser {
     @Autowired
     NycStblzdPropertyDataRepository nycStblzdPropertyDataRepository;
 
-    String line = "";  
-    String splitBy = ",";  
-
+    String line = "";
     public void extractExcelData(File file){
         try {  
 
             BufferedReader br = new BufferedReader(new FileReader(file));  
-            FileWriter myWriter = new FileWriter("properties.json");
             ArrayList<NycStblzdPropertyData> propertiesList = new ArrayList<>();
             while ((line = br.readLine()) != null) {  // returns a Boolean value
                 NycStblzdPropertyData pro = new NycStblzdPropertyData();
                 String[] property = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);// use comma as separator
 
-                if((!"borough".equals(property[0])) && (property[50] != "")){
+                if((!"borough".equals(property[0])) && (!property[50].isEmpty())){
                     pro.setUcbbl(property[1]);
-                    pro.setUnitTotal(Long.valueOf(property[56]));
+                    pro.setUnitTotal(property[56]);
                     pro.setYearBuilt(Long.valueOf(property[57]));
-                    pro.setUnitRes(Long.valueOf(property[55]));
-                    pro.setLon(Float.valueOf(property[59]));
-                    pro.setLat(Float.valueOf(property[60]));
-                    pro.setNumBldgs(Long.valueOf(property[50]));
-                    pro.setNumFloors(Long.valueOf(property[54]));
+                    pro.setUnitRes(property[55]);
+                    pro.setLon(property[59]);
+                    pro.setLat(property[60]);
+                    pro.setNumBldgs(property[53]);
+                    pro.setNumFloors(property[54]);
 
-    
                     propertiesList.add(pro);
         
                     ObjectMapper mapper = new ObjectMapper();
                     String jsonString = mapper.writeValueAsString(property);
                     pro.setContent(jsonString);
                 }
-
             }
-
-            saveProperties(propertiesList);
-            myWriter.close();
-            
+            CompletableFuture.runAsync(() -> saveProperties(propertiesList));
             }   catch (IOException e)   
         {  
             e.printStackTrace(); 
         }
     }
 
-    public void saveProperties(ArrayList<NycStblzdPropertyData> properties){
-        for (NycStblzdPropertyData pro : properties){
-            nycStblzdPropertyDataRepository.save(pro);
+    public void saveProperties(List<NycStblzdPropertyData> propertiesList) {
+        try {
+            nycStblzdPropertyDataRepository.deleteAllRecords();
+            List<List<NycStblzdPropertyData>> listOfPropertiesList = Lists.partition(propertiesList, 1000);
+            listOfPropertiesList.parallelStream().forEach(list -> nycStblzdPropertyDataRepository.saveAll(list));
+        }catch (Exception e){
+            System.out.println("Error while saving the github data: "+e);
         }
-
     }
-    
 }

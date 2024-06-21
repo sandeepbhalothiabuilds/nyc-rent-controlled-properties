@@ -43,7 +43,6 @@ public class NycRcuListingsServiceImpl implements NycRcuListingsService {
                 System.out.println("Error Occurred while saving-: " + e);
             }
         }));
-
     }
 
     private void insertRcuRecords(Table table, String boroughName, String boroughId) throws JsonProcessingException {
