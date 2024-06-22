@@ -26,7 +26,7 @@ public class NyRentStabilizedProperty {
     private Long nyRentStabilizedPropertyId;
 
     @Column(name = "ucbbl_number")
-    private Long ucbblNumber;
+    private String ucbblNumber;
 
     @Column(name = "status1")
     private String status1;

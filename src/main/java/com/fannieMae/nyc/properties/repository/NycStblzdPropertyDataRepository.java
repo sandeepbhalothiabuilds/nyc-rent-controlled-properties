@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import com.fannieMae.nyc.properties.entity.NycStblzdPropertyData;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Repository
 public interface NycStblzdPropertyDataRepository extends JpaRepository<NycStblzdPropertyData, Long> {
 
@@ -15,4 +17,6 @@ public interface NycStblzdPropertyDataRepository extends JpaRepository<NycStblzd
     @Transactional
     @Query(value = "DELETE FROM NycStblzdPropertyData WHERE rentStabilizedPropertyUnitsId > 0")
     void deleteAllRecords();
+
+    List<NycStblzdPropertyData> findByBorough(String borough);
 }

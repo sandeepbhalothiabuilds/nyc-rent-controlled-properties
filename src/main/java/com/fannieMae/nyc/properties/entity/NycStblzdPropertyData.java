@@ -22,6 +22,9 @@ public class NycStblzdPropertyData {
     @Column(name = "rent_stblzd_property_units_id")
     private Long rentStabilizedPropertyUnitsId;
 
+    @Column(name = "borough")
+    private  String borough;
+
     @Column(name = "ucbbl_number")
     private String ucbblNumber;
 

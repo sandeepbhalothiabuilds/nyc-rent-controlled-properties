@@ -7,15 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-@Controller
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
 @CrossOrigin
 public class FilesController {
 
@@ -42,17 +42,13 @@ public class FilesController {
             return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
     }
 
-    @GetMapping("/getProperties")
-    public ResponseEntity<NycRentControlledPropertiesResponse> getProperties() {
-        String message = "";
+    @GetMapping("/getProperties/{borough}")
+    public List<NycRentControlledPropertiesResponse> getProperties(@PathVariable String borough) {
         try {
-            NycRentControlledPropertiesResponse response = storageService.getProperties();
+            return storageService.getProperties(borough);
 
-            message = "Data Retrieved successfully ";
-            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e) {
-            message = "Get Properties API Failed with reason: " + e.getMessage();
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new NycRentControlledPropertiesResponse());
+            return new ArrayList<>();
         }
     }
 }

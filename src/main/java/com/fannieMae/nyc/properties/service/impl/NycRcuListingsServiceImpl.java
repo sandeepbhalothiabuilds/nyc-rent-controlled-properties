@@ -162,8 +162,8 @@ public class NycRcuListingsServiceImpl implements NycRcuListingsService {
         return blockNumber;
     }
 
-    private Long buildUcbblNumber(TableRow tableRow, String boroughId, String blockNumber, String lotNumber) {
-        return Long.parseLong(boroughId + blockNumber + lotNumber);
+    private String buildUcbblNumber(TableRow tableRow, String boroughId, String blockNumber, String lotNumber) {
+        return boroughId + blockNumber + lotNumber;
     }
 
     private String convertRowDataToJson(TableRow headerRow, TableRow dataRow) throws JsonProcessingException {
