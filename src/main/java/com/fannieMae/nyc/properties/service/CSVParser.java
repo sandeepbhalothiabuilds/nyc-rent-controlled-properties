@@ -3,19 +3,19 @@ package com.fannieMae.nyc.properties.service;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fannieMae.nyc.properties.entity.NycStblzdPropertyData;
 import com.fannieMae.nyc.properties.repository.NycStblzdPropertyDataRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 @Service
 public class CSVParser {
@@ -30,14 +30,20 @@ public class CSVParser {
 
             BufferedReader br = new BufferedReader(new FileReader(file));
             ArrayList<NycStblzdPropertyData> propertiesList = new ArrayList<>();
+            String dataYear = null;
             while ((line = br.readLine()) != null) {
                 try {
                     NycStblzdPropertyData pro = new NycStblzdPropertyData();
                     String[] property = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);// use comma as separator
 
+                    if(("borough".equals(property[0])) && (dataYear == null)){
+                        dataYear = getDataConYer(property);
+                    }  
+
                     if ((!"borough".equals(property[0])) && (!property[50].isEmpty())) {
                         pro.setBorough(property[0]);
                         pro.setUcbblNumber(property[1]);
+                        pro.setDataConsolidationYear(dataYear);
                         pro.setUc(property[42]);
                         pro.setEst(property[43]);
                         pro.setDhcr(property[44]);
@@ -57,6 +63,8 @@ public class CSVParser {
                         pro.setCondoNumber(property[58]);
                         pro.setLongitude(property[59]);
                         pro.setLatitude(property[60]);
+                        pro.setCreatedBy("postgres");
+                        pro.setUpdatedBy("postgres");
                         propertiesList.add(pro);
 
                         ObjectMapper mapper = new ObjectMapper();
@@ -81,5 +89,12 @@ public class CSVParser {
         } catch (Exception e) {
             System.out.println("Error while saving the github data: " + e);
         }
+    }
+
+    public String getDataConYer(String[] property){
+        Integer pos = Arrays.asList(property).indexOf("cd");
+        String dataConYear = property[pos - 1];
+
+        return dataConYear.substring(0, 4);
     }
 }

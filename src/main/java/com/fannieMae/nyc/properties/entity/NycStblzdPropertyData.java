@@ -1,10 +1,17 @@
 package com.fannieMae.nyc.properties.entity;
 
-import jakarta.persistence.*;
-import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -82,16 +89,20 @@ public class NycStblzdPropertyData {
     @Column(name = "condo_number")
     private String condoNumber;
 
-
     @Column(name = "longitude")
     private String longitude;
 
     @Column(name = "latitude")
     private String latitude;
 
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "json_raw_data")
     private String content;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "updated_by")
+    private String updatedBy;
 }
