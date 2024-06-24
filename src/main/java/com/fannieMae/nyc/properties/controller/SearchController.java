@@ -3,16 +3,13 @@ package com.fannieMae.nyc.properties.controller;
 import com.fannieMae.nyc.properties.model.PropertyDetails;
 import com.fannieMae.nyc.properties.service.impl.NYRentStbLzdPropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@CrossOrigin
 @RequestMapping("/api/properties")
+@CrossOrigin
 public class SearchController {
     @Autowired
     private NYRentStbLzdPropertyService nyRentStbLzdPropertyService;
@@ -33,12 +30,19 @@ public class SearchController {
 
 
     @GetMapping("/criteria")
-    public List<PropertyDetails> getProperties(@RequestParam(required = false) String zipcode, @RequestParam(required = false) String borough, @RequestParam(required = true) int offset) {
-        return nyRentStbLzdPropertyService.findAllByCriteria(zipcode, borough, offset);
+    public List<PropertyDetails> getProperties(@RequestParam(required = false) String zipcode, @RequestParam(required = false) String borough
+            ,@RequestParam(required = false) String buildingNumber,
+                                               @RequestParam(required = false) String street,
+                                               @RequestParam(required = false) String stateSuffix,
+                                               @RequestParam(required = true) int offset) {
+        return nyRentStbLzdPropertyService.findAllByCriteria(zipcode, borough, buildingNumber, street, stateSuffix, offset);
     }
 
     @GetMapping("/criteriaCount")
-    public Long getPropertiesCount(@RequestParam(required = false) String zipcode, @RequestParam(required = false) String borough) {
-        return nyRentStbLzdPropertyService.countByCriteria(zipcode, borough);
+    public Long getPropertiesCount(@RequestParam(required = false) String zipcode, @RequestParam(required = false) String borough
+            , @RequestParam(required = false) String buildingNumber,
+                                   @RequestParam(required = false) String street,
+                                   @RequestParam(required = false) String stateSuffix) {
+        return nyRentStbLzdPropertyService.countByCriteria(zipcode, borough, buildingNumber, street, stateSuffix);
     }
 }

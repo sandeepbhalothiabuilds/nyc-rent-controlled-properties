@@ -44,45 +44,83 @@ public class NYRentStbLzdPropertyService {
         return addrRepository.countAllAddresses();
     }
 
-    public Long countByCriteria(String zipcode, String borough){
+    public Long countByCriteria(String zipcode, String borough , String buildingNumber, String street, String stateSuffix){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
         Root<NyRentStabilizedPropertyAddress> addressRoot = query.from(NyRentStabilizedPropertyAddress.class);
-
+        List<Predicate> predicates = new ArrayList<>();
         // Join with custom condition: ucbblNumber = ucbbl
         if (zipcode != null) {
             Predicate zipcodeCondition = criteriaBuilder.like(addressRoot.get("zip"), "%"+zipcode+"%");
-            query.where(zipcodeCondition);
+            //query.where(zipcodeCondition);
+            predicates.add(zipcodeCondition);
         }
         if (borough != null) {
             Predicate boroughCondition = criteriaBuilder.equal(addressRoot.get("borough"), borough);
-            query.where(boroughCondition);
+            // query.where(boroughCondition);
+            predicates.add(boroughCondition);
         }
+        if (buildingNumber != null) {
+            Predicate buildingNumberCondition = criteriaBuilder.equal(addressRoot.get("buildingNumber"), buildingNumber);
+            //query.where(buildingNumberCondition);
+            predicates.add(buildingNumberCondition);
+        }
+        if (street != null) {
+            Predicate streetCondition = criteriaBuilder.equal(addressRoot.get("street"), street);
+            predicates.add(streetCondition);
+            // query.where(streetCondition);
+        }
+        if (stateSuffix != null) {
+            Predicate stateSuffixCondition = criteriaBuilder.equal(addressRoot.get("stateSuffix"), stateSuffix);
+            //query.where(stateSuffixCondition);
+            predicates.add(stateSuffixCondition);
+        }
+        query.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
         query.select(criteriaBuilder.count(addressRoot));
         return entityManager.createQuery(query).getSingleResult();
     }
-    public List<PropertyDetails> findAllByCriteria(String zipcode, String borough , int offset ){
+    public List<PropertyDetails> findAllByCriteria(String zipcode, String borough , String buildingNumber, String street, String stateSuffix, int offset ){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<PropertyDetails> query = criteriaBuilder.createQuery(PropertyDetails.class);
         Root<NyRentStabilizedPropertyAddress> addressRoot = query.from(NyRentStabilizedPropertyAddress.class);
         Root<NyRentStabilizedProperty> dataRoot = query.from(NyRentStabilizedProperty.class);
         Root<NycStblzdPropertyData> unitsRoot = query.from(NycStblzdPropertyData.class);
 
-
+        List<Predicate> predicates = new ArrayList<>();
         Predicate joinCondition1 = criteriaBuilder.equal(addressRoot.get("ucbblNumber"), dataRoot.get("ucbblNumber"));
-        query.where(joinCondition1);
+        predicates.add(joinCondition1);
+        //query.where(joinCondition1);
         // Join with custom condition: ucbblNumber = ucbbl
         Predicate joinCondition = criteriaBuilder.equal(addressRoot.get("ucbblNumber"), unitsRoot.get("ucbblNumber"));
-        query.where(joinCondition);
+        //query.where(joinCondition);
+        predicates.add(joinCondition);
+
         if (zipcode != null) {
             Predicate zipcodeCondition = criteriaBuilder.like(addressRoot.get("zip"), "%"+zipcode+"%");
-            query.where(zipcodeCondition);
+            //query.where(zipcodeCondition);
+            predicates.add(zipcodeCondition);
         }
         if (borough != null) {
             Predicate boroughCondition = criteriaBuilder.equal(addressRoot.get("borough"), borough);
-            query.where(boroughCondition);
+           // query.where(boroughCondition);
+            predicates.add(boroughCondition);
         }
-
+        if (buildingNumber != null) {
+            Predicate buildingNumberCondition = criteriaBuilder.equal(addressRoot.get("buildingNumber"), buildingNumber);
+            //query.where(buildingNumberCondition);
+            predicates.add(buildingNumberCondition);
+        }
+        if (street != null) {
+            Predicate streetCondition = criteriaBuilder.equal(addressRoot.get("street"), street);
+            predicates.add(streetCondition);
+           // query.where(streetCondition);
+        }
+        if (stateSuffix != null) {
+            Predicate stateSuffixCondition = criteriaBuilder.equal(addressRoot.get("stateSuffix"), stateSuffix);
+            //query.where(stateSuffixCondition);
+            predicates.add(stateSuffixCondition);
+        }
+        query.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
         query.select(criteriaBuilder.construct(
                 PropertyDetails.class,
                 dataRoot,
