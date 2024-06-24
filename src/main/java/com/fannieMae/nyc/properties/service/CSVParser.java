@@ -81,6 +81,10 @@ public class CSVParser {
                             pro.setYearBuilt(Long.valueOf(property[57]));
                         }
 
+                        if(property[indexOfdataYear - 1].contains("\"")){
+                            pro.setAbat(property[indexOfdataYear - 1].substring(1, property[indexOfdataYear - 1].length() - 1));
+                        }
+
                         propertiesList.add(pro);
                         ObjectMapper mapper = new ObjectMapper();
                         String jsonString = mapper.writeValueAsString(property);
