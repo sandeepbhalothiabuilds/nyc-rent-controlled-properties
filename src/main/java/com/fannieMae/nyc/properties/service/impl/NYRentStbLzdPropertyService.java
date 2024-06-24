@@ -5,8 +5,10 @@ import com.fannieMae.nyc.properties.entity.NyRentStabilizedPropertyAddress;
 import com.fannieMae.nyc.properties.entity.NycStblzdPropertyData;
 import com.fannieMae.nyc.properties.model.PropertyDetails;
 import com.fannieMae.nyc.properties.repository.NycRcuListingsAddressRepository;
+import com.fannieMae.nyc.properties.repository.PropertyDetailsRepository;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class NYRentStbLzdPropertyService {
     @PersistenceContext
     EntityManager entityManager;
 
+
     public List<PropertyDetails> getPropertyDetails(int offset) {
         Pageable pagable = PageRequest.of(offset, offset+50);
         return addrRepository.getAllProperties(pagable);
@@ -42,7 +45,24 @@ public class NYRentStbLzdPropertyService {
         return addrRepository.countAllAddresses();
     }
 
-    public List<PropertyDetails> findAllByCriteria(String zipcode, String borough){
+    public Long countByCriteria(String zipcode, String borough){
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+        Root<NyRentStabilizedPropertyAddress> addressRoot = query.from(NyRentStabilizedPropertyAddress.class);
+
+        // Join with custom condition: ucbblNumber = ucbbl
+        if (zipcode != null) {
+            Predicate zipcodeCondition = criteriaBuilder.like(addressRoot.get("zip"), "%"+zipcode+"%");
+            query.where(zipcodeCondition);
+        }
+        if (borough != null) {
+            Predicate boroughCondition = criteriaBuilder.equal(addressRoot.get("borough"), borough);
+            query.where(boroughCondition);
+        }
+        query.select(criteriaBuilder.count(addressRoot));
+        return entityManager.createQuery(query).getSingleResult();
+    }
+    public List<PropertyDetails> findAllByCriteria(String zipcode, String borough , int offset ){
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<PropertyDetails> query = criteriaBuilder.createQuery(PropertyDetails.class);
         Root<NyRentStabilizedPropertyAddress> addressRoot = query.from(NyRentStabilizedPropertyAddress.class);
@@ -59,13 +79,21 @@ public class NYRentStbLzdPropertyService {
             Predicate zipcodeCondition = criteriaBuilder.like(addressRoot.get("zip"), "%"+zipcode+"%");
             query.where(zipcodeCondition);
         }
+        if (borough != null) {
+            Predicate boroughCondition = criteriaBuilder.equal(addressRoot.get("borough"), borough);
+            query.where(boroughCondition);
+        }
+
         query.select(criteriaBuilder.construct(
                 PropertyDetails.class,
                 dataRoot,
                 unitsRoot,
                 addressRoot
 
-        ));
-        return entityManager.createQuery(query).getResultList();
+        )).orderBy(criteriaBuilder.asc(addressRoot.get("addressId")));
+        return entityManager.createQuery(query).setFirstResult(offset) // offset
+                .setMaxResults(50) // limit
+                .getResultList();
     }
+
 }
