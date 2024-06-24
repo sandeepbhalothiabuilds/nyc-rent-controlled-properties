@@ -9,5 +9,5 @@ phases:
       - echo Build complete.
 artifacts:
   files:
-    - target/NYCProperties-app.jar
+    - target/NYCProperties-app-jar-with-dependencies.jar
   discard-paths: yes
