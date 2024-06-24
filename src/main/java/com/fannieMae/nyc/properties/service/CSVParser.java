@@ -27,9 +27,8 @@ public class CSVParser {
     Integer indexOfdataYear = null;
 
     public void extractExcelData(File file) {
-        try {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 
-            BufferedReader br = new BufferedReader(new FileReader(file));
             ArrayList<NycStblzdPropertyData> propertiesList = new ArrayList<>();
             String dataYear = null;
             while ((line = br.readLine()) != null) {
@@ -37,9 +36,9 @@ public class CSVParser {
                     NycStblzdPropertyData pro = new NycStblzdPropertyData();
                     String[] property = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);// use comma as separator
 
-                    if(("borough".equals(property[0])) && (dataYear == null)){
+                    if (("borough".equals(property[0])) && (dataYear == null)) {
                         dataYear = getDataConYer(property);
-                    }  
+                    }
 
                     if (!"borough".equals(property[0])) {
                         pro.setBorough(property[0]);
@@ -66,9 +65,9 @@ public class CSVParser {
                         pro.setCreatedBy("postgres");
                         pro.setUpdatedBy("postgres");
 
-                        if("".equals(property[0])){
+                        if ("".equals(property[0])) {
                             pro.setYearBuilt(null);
-                            if(null != property[1].substring(1,2))switch (property[1].substring(0,2)) {
+                            if (null != property[1].substring(1, 2)) switch (property[1].substring(0, 2)) {
                                 case "10" -> pro.setBorough("MN");
                                 case "20" -> pro.setBorough("BX");
                                 case "30" -> pro.setBorough("BK");
@@ -76,12 +75,12 @@ public class CSVParser {
                                 case "50" -> pro.setBorough("SI");
                                 default -> {
                                 }
-                            } 
-                        }else {
+                            }
+                        } else {
                             pro.setYearBuilt(Long.valueOf(property[57]));
                         }
 
-                        if(property[indexOfdataYear - 1].contains("\"")){
+                        if (property[indexOfdataYear - 1].contains("\"")) {
                             pro.setAbat(property[indexOfdataYear - 1].substring(1, property[indexOfdataYear - 1].length() - 1));
                         }
 
@@ -110,7 +109,7 @@ public class CSVParser {
         }
     }
 
-    public String getDataConYer(String[] property){
+    public String getDataConYer(String[] property) {
         Integer pos = Arrays.asList(property).indexOf("cd");
         indexOfdataYear = pos;
         String dataConYear = property[pos - 1];
