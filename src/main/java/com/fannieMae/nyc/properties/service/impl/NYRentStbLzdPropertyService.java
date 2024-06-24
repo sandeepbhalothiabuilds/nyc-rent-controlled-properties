@@ -5,8 +5,10 @@ import com.fannieMae.nyc.properties.entity.NyRentStabilizedPropertyAddress;
 import com.fannieMae.nyc.properties.entity.NycStblzdPropertyData;
 import com.fannieMae.nyc.properties.model.PropertyDetails;
 import com.fannieMae.nyc.properties.repository.NycRcuListingsAddressRepository;
+import com.fannieMae.nyc.properties.repository.PropertyDetailsRepository;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class NYRentStbLzdPropertyService {
     @PersistenceContext
     EntityManager entityManager;
 
+   
     public List<PropertyDetails> getPropertyDetails(int offset) {
         Pageable pagable = PageRequest.of(offset, offset+50);
         return addrRepository.getAllProperties(pagable);
@@ -59,6 +62,10 @@ public class NYRentStbLzdPropertyService {
             Predicate zipcodeCondition = criteriaBuilder.like(addressRoot.get("zip"), "%"+zipcode+"%");
             query.where(zipcodeCondition);
         }
+        if (borough != null) {
+            Predicate boroughCondition = criteriaBuilder.equal(addressRoot.get("borough"), borough);
+            query.where(boroughCondition);
+        }
         query.select(criteriaBuilder.construct(
                 PropertyDetails.class,
                 dataRoot,
@@ -68,4 +75,6 @@ public class NYRentStbLzdPropertyService {
         ));
         return entityManager.createQuery(query).getResultList();
     }
+
+
 }
