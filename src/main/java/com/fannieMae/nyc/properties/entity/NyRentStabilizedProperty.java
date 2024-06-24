@@ -1,5 +1,6 @@
 package com.fannieMae.nyc.properties.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -61,6 +63,7 @@ public class NyRentStabilizedProperty {
     @JdbcTypeCode(SqlTypes.JSON)
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "json_raw_data")
+    @JsonIgnore
     private String jsonRawData;
 
 }
