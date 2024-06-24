@@ -5,7 +5,6 @@ import com.fannieMae.nyc.properties.entity.NyRentStabilizedPropertyAddress;
 import com.fannieMae.nyc.properties.entity.NycStblzdPropertyData;
 import com.fannieMae.nyc.properties.model.PropertyDetails;
 import com.fannieMae.nyc.properties.repository.NycRcuListingsAddressRepository;
-import com.fannieMae.nyc.properties.repository.PropertyDetailsRepository;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
