@@ -1,5 +1,8 @@
 package com.fannieMae.nyc.properties.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -93,11 +96,12 @@ public class NycStblzdPropertyData {
     private String longitude;
 
     @Column(name = "latitude")
-    private String latitude;
+    private String  latitude;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "json_raw_data")
+    @JsonIgnore
     private String content;
 
     @Column(name = "created_by")
