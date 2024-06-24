@@ -24,6 +24,7 @@ public class CSVParser {
     NycStblzdPropertyDataRepository nycStblzdPropertyDataRepository;
 
     String line = "";
+    Integer indexOfdataYear = null;
 
     public void extractExcelData(File file) {
         try {
@@ -40,14 +41,14 @@ public class CSVParser {
                         dataYear = getDataConYer(property);
                     }  
 
-                    if ((!"borough".equals(property[0])) && (!property[50].isEmpty())) {
+                    if (!"borough".equals(property[0])) {
                         pro.setBorough(property[0]);
                         pro.setUcbblNumber(property[1]);
                         pro.setDataConsolidationYear(dataYear);
-                        pro.setUc(property[42]);
-                        pro.setEst(property[43]);
-                        pro.setDhcr(property[44]);
-                        pro.setAbat(property[45]);
+                        pro.setUc(property[indexOfdataYear - 4]);
+                        pro.setEst(property[indexOfdataYear - 3]);
+                        pro.setDhcr(property[indexOfdataYear - 2]);
+                        pro.setAbat(property[indexOfdataYear - 1]);
                         pro.setCd(property[46]);
                         pro.setCt(property[47]);
                         pro.setCb(property[48]);
@@ -59,14 +60,32 @@ public class CSVParser {
                         pro.setNumOfFloors(property[54]);
                         pro.setUnitRes(property[55]);
                         pro.setUnitTotal(property[56]);
-                        pro.setYearBuilt(Long.valueOf(property[57]));
                         pro.setCondoNumber(property[58]);
                         pro.setLongitude(property[59]);
                         pro.setLatitude(property[60]);
                         pro.setCreatedBy("postgres");
                         pro.setUpdatedBy("postgres");
-                        propertiesList.add(pro);
 
+                        if("".equals(property[0])){
+                            pro.setYearBuilt(null);
+                            if(null != property[1].substring(1,2))switch (property[1].substring(0,2)) {
+                                case "10" -> pro.setBorough("MN");
+                                case "20" -> pro.setBorough("BX");
+                                case "30" -> pro.setBorough("BK");
+                                case "40" -> pro.setBorough("QN");
+                                case "50" -> pro.setBorough("SI");
+                                default -> {
+                                }
+                            } 
+                        }else {
+                            pro.setYearBuilt(Long.valueOf(property[57]));
+                        }
+
+                        if(property[indexOfdataYear - 1].contains("\"")){
+                            pro.setAbat(property[indexOfdataYear - 1].substring(1, property[indexOfdataYear - 1].length() - 1));
+                        }
+
+                        propertiesList.add(pro);
                         ObjectMapper mapper = new ObjectMapper();
                         String jsonString = mapper.writeValueAsString(property);
                         pro.setContent(jsonString);
@@ -93,6 +112,7 @@ public class CSVParser {
 
     public String getDataConYer(String[] property){
         Integer pos = Arrays.asList(property).indexOf("cd");
+        indexOfdataYear = pos;
         String dataConYear = property[pos - 1];
 
         return dataConYear.substring(0, 4);
