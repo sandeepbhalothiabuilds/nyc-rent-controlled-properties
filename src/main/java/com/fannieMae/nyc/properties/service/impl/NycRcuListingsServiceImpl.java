@@ -35,6 +35,7 @@ public class NycRcuListingsServiceImpl implements NycRcuListingsService {
         String boroughName = boroughAndIdMap.keySet().iterator().next();
         String boroughId = boroughAndIdMap.get(boroughName);
         nycRcuListingsRepository.deleteRecordsByBorough(boroughName);
+        nycRcuListingsAddressRepository.deleteRecordsByBorough(boroughName);
 
         CompletableFuture.runAsync(() -> tables.parallelStream().forEach(table -> {
             try {

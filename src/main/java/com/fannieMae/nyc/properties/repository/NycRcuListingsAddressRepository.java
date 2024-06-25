@@ -32,7 +32,7 @@ public interface NycRcuListingsAddressRepository extends JpaRepository<NyRentSta
 
     @Modifying
     @Transactional
-    @Query(value="DELETE FROM NyRentStabilizedProperty WHERE borough = ?1")
+    @Query(value="DELETE FROM NyRentStabilizedPropertyAddress WHERE borough = ?1")
     void deleteRecordsByBorough(String boroughName);
 
     List<NyRentStabilizedPropertyAddress> findByBorough(String borough);
